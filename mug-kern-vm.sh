@@ -2,8 +2,8 @@
 
 set -eux
 
-if [[ ${PWD##*/} != "linux" ]]; then
-	echo "ERROR: This script should be executed in a linux directory"
+if [[ ${PWD##*/} != "linux" ]] && [[ ${PWD##*/} != "staging" ]]; then
+	echo "ERROR: This script should be executed in a linux or staging directory"
 	exit 1
 fi
 
@@ -41,7 +41,9 @@ function create_img {
 		exit 1
 	fi
 
-	sudo vmdebootstrap --verbose --image=${IMG} --size=5g --distribution=${DIST} --grub --enable-dhcp --package=${PKGS} --owner=$USER
+	sudo vmdebootstrap --verbose --image=${IMG} --size=5g \
+	--distribution=${DIST} --grub --enable-dhcp --package=${PKGS} \
+	--owner=$USER
 }
 
 function config_img {
@@ -71,24 +73,24 @@ function config_img {
 function vm_launch_native {
 	# Launch VM with the kernel it is already installed
 	kvm -hda $IMG \
-		-fsdev local,id=fs1,path=${SHARE},security_model=none \
-		-device virtio-9p-pci,fsdev=fs1,mount_tag=host-code \
-		-net nic -net user,hostfwd=tcp::5555-:22 \
-		-m 2g
+		#-fsdev local,id=fs1,path=${SHARE},security_model=none \
+		#-device virtio-9p-pci,fsdev=fs1,mount_tag=host-code \
+		-device e1000,netdev=network0 -netdev user,id=network0 -redir tcp:5555::22 \
+		-m 2G
 }
 
 function vm_launch {
 	# Launch VM with custom kernel
 	kvm -hda $IMG \
-		-fsdev local,id=fs1,path=${SHARE},security_model=none \
-		-device virtio-9p-pci,fsdev=fs1,mount_tag=host-code \
+		#-fsdev local,id=fs1,path=${SHARE},security_model=none \
+		#-device virtio-9p-pci,fsdev=fs1,mount_tag=host-code \
 		-s \
 		-smp 1 \
 		-nographic \
 		-kernel ${KERNEL} \
-		-append "root=/dev/sda1 console=ttyS0" \
-		-net nic -net user,hostfwd=tcp::5555-:22 \
-		-m 2g
+		-append "root=/dev/sda1 console=ttyS0 mode:1366x768" \
+		-device e1000,netdev=network0 -netdev user,id=network0 -redir tcp:5555::22 \
+		-m 2G
 }
 
 case "${1-}" in
@@ -111,10 +113,12 @@ case "${1-}" in
 		;;
 	create-img)
 		create_img
+		;;
+	config-img)
 		config_img
 		;;
 	*)
-		echo "Usage: $0 {mount|umount|install|launch|launch-native|create-img}"
+		echo "Usage: $0 {mount|umount|install|launch|launch-native|create-img|config-img}"
 		echo "Requirements: libguestfs-tools kvm vmdebootstrap"
 		exit 1
 esac
