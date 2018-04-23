@@ -19,7 +19,7 @@ PKGS=openssh-server,xauth,xwayland
 # Dev tools
 PKGS=${PKGS},git,vim
 # v4l-utils build dependencies
-PKGS=${PKGS},dh-autoreconf,autotools-dev,doxygen,gettext,graphviz,libasound2-dev,libtool,libjpeg-dev,qtbase5-dev,libudev-dev,libx11-dev,pkg-config,udev,qt5-default
+PKGS=${PKGS},dh-autoreconf,autotools-dev,doxygen,gettext,graphviz,libasound2-dev,libtool,libjpeg-dev,libudev-dev,pkg-config,udev
 
 function vm_mount {
 	if [[ ! -d ${MNT} ]]; then
@@ -72,17 +72,15 @@ function config_img {
 
 function vm_launch_native {
 	# Launch VM with the kernel it is already installed
-	kvm -hda $IMG \
+	kvm -hda ${IMG} \
 		-device e1000,netdev=network0 -netdev user,id=network0 -redir tcp:5555::22 \
 		-m 2G
 }
 
 function vm_launch {
 	# Launch VM with custom kernel
-	kvm -hda $IMG \
+	kvm -hda ${IMG} -nographic -kernel ${KERNEL} \
 		-s -smp 1 \
-		-nographic \
-		-kernel ${KERNEL} \
 		-append "root=/dev/sda1 console=ttyS0 mode:1366x768" \
 		-device e1000,netdev=network0 -netdev user,id=network0 -redir tcp:5555::22 \
 		-m 2G
@@ -110,7 +108,7 @@ case "${1-}" in
 		create_img
 		;;
 	config-img)
-		config_img
+		config_imgu
 		;;
 	*)
 		echo "Usage: $0 {mount|umount|install|launch|launch-native|create-img|config-img}"
