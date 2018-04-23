@@ -73,8 +73,6 @@ function config_img {
 function vm_launch_native {
 	# Launch VM with the kernel it is already installed
 	kvm -hda $IMG \
-		#-fsdev local,id=fs1,path=${SHARE},security_model=none \
-		#-device virtio-9p-pci,fsdev=fs1,mount_tag=host-code \
 		-device e1000,netdev=network0 -netdev user,id=network0 -redir tcp:5555::22 \
 		-m 2G
 }
@@ -82,10 +80,7 @@ function vm_launch_native {
 function vm_launch {
 	# Launch VM with custom kernel
 	kvm -hda $IMG \
-		#-fsdev local,id=fs1,path=${SHARE},security_model=none \
-		#-device virtio-9p-pci,fsdev=fs1,mount_tag=host-code \
-		-s \
-		-smp 1 \
+		-s -smp 1 \
 		-nographic \
 		-kernel ${KERNEL} \
 		-append "root=/dev/sda1 console=ttyS0 mode:1366x768" \
