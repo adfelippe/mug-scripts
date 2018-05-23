@@ -85,6 +85,14 @@ function vm_launch {
 		-m 2G
 }
 
+function vm_launch_debug {
+	# Launch VM with custom kernel and debug (gdb) support
+	kvm -S -s -hda ${IMG} -nographic -kernel ${KERNEL} \
+		-append "root=/dev/sda1 console=ttyS0" \
+		-device e1000,netdev=network0 -netdev user,id=network0 -redir tcp:5555::22 \
+		-m 2G
+}
+
 case "${1-}" in
 	mount)
 		vm_mount
@@ -103,14 +111,18 @@ case "${1-}" in
 	launch-native)
 		vm_launch_native
 		;;
+	launch-debug)
+		vm_launch_debug
+		;;
 	create-img)
 		create_img
 		;;
 	config-img)
-		config_imgu
+		config_img
 		;;
 	*)
-		echo "Usage: $0 {mount|umount|install|launch|launch-native|create-img|config-img}"
+		echo "Usage: $0
+		{mount|umount|install|launch|launch-native|launch-debug|create-img|config-img}"
 		echo "Requirements: libguestfs-tools kvm vmdebootstrap"
 		exit 1
 esac
