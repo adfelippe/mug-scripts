@@ -17,7 +17,7 @@ KERNEL=arch/x86_64/boot/bzImage
 # Base configuration
 PKGS=openssh-server,xauth,xwayland
 # Dev tools
-PKGS=${PKGS},git,vim
+PKGS=${PKGS},vim
 # v4l-utils build dependencies
 PKGS=${PKGS},dh-autoreconf,autotools-dev,doxygen,gettext,graphviz,libasound2-dev,libtool,libjpeg-dev,libudev-dev,pkg-config,udev
 
@@ -80,8 +80,7 @@ function vm_launch_native {
 function vm_launch {
 	# Launch VM with custom kernel
 	kvm -hda ${IMG} -nographic -kernel ${KERNEL} \
-		-s -smp 1 \
-		-append "root=/dev/sda1 console=ttyS0 mode:1366x768" \
+		-append "root=/dev/sda1 console=ttyS0" \
 		-device e1000,netdev=network0 -netdev user,id=network0 -redir tcp:5555::22 \
 		-m 2G
 }
